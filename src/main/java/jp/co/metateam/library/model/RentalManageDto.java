@@ -34,6 +34,8 @@ public class RentalManageDto {
 
     @DateTimeFormat(pattern="yyyy-MM-dd")
     @NotNull(message="返却予定日は必須です")
+
+    
     private Date expectedReturnOn;
 
     private Timestamp rentaledAt;
