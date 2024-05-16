@@ -73,6 +73,7 @@ public class StockService {
     public void update(String id, StockDto stockDto) throws Exception {
         try {
             Stock stock = findById(id);
+            //idと同じフィールドにあるレコードを全件取得
             if (stock == null) {
                 throw new Exception("Stock record not found.");
             }
