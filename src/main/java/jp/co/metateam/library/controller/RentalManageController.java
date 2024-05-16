@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+
 import org.springframework.validation.FieldError;
+
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +28,7 @@ import jp.co.metateam.library.service.StockService;
 import lombok.extern.log4j.Log4j2;
 import java.util.List;
 import jp.co.metateam.library.model.RentalManage;
+
 import java.util.Date;
 
 /**
@@ -93,6 +96,7 @@ public class RentalManageController {
         } catch (Exception e) {
             log.error(e.getMessage());
 
+
             ra.addFlashAttribute("rentalManageDto", rentalManageDto);
             ra.addFlashAttribute("org.springframework.validation.BindingResult.rentalManageDto", result);
 
@@ -128,7 +132,10 @@ public class RentalManageController {
         }
  
         return "rental/edit";
+
     }
+    
+
 
     @PostMapping("/rental/{id}/edit")
     public String update(@PathVariable("id") Long id, @Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result, RedirectAttributes ra) {
