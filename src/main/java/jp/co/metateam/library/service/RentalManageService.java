@@ -92,6 +92,7 @@ public class RentalManageService {
             if (stock == null) {
                 throw new Exception("Stock not found.");
             }
+            
             ////入力時のデータを持ってくる
             //Account account = rentalManage.getAccount();
             //accountの箱にDB上のaccount情報を持ってきていれる
