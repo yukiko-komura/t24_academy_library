@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+//import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.validation.Valid;
 import jp.co.metateam.library.model.Stock;
-import jp.co.metateam.library.model.StockDto;
-import jp.co.metateam.library.service.BookMstService;
-import jp.co.metateam.library.values.StockStatus;
+//import jp.co.metateam.library.model.StockDto;
+//import jp.co.metateam.library.service.BookMstService;
+//import jp.co.metateam.library.values.StockStatus;
 import jp.co.metateam.library.model.Account;
 import jp.co.metateam.library.service.AccountService;
 import jp.co.metateam.library.service.RentalManageService;
@@ -68,6 +68,7 @@ public class RentalManageController {
     public String add(Model model) {
         List<Account> accounts = this.accountService.findAll();
         List<Stock> stockList = this.stockService.findAll();
+        //アカウントとストックテーブルから全件取得
 
         model.addAttribute("accounts",accounts);
         model.addAttribute("stockList", stockList);
@@ -86,10 +87,43 @@ public class RentalManageController {
             if (result.hasErrors()) {
                 throw new Exception("Validation error.");
             }
-            // 登録処理
-            this.rentalManageService.save(rentalManageDto);
 
+            Stock stock = this.stockService.findById(rentalManageDto.getStockId());
+            //貸出管理テーブルの入力された在庫管理番号に紐づく在庫テーブルのデータを持ってくる
+            int stockStatus = stock.getStatus();
+
+            if (stockStatus == 1) {
+            FieldError fieldError = new FieldError("rentalManageDto", "status", "この本は利用できません");
+            result.addError(fieldError);
+            throw new Exception("Validation error.");
+            }   
+            
+            String newStockId = rentalManageDto.getStockId();
+            List<RentalManage> renatalManagelList = this.rentalManageService.findByStockIdAndStatus(newStockId);
+            //入力された在庫管理番号に紐づく貸出管理テーブルの貸出ステータス(01のみ)のデータを持ってくる
+        
+            if (renatalManagelList == null){
+            this.rentalManageService.save(rentalManageDto);
             return "redirect:/rental/index";
+            }
+            
+            for (RentalManage list : renatalManagelList){
+                if (list.getExpectedRentalOn().compareTo(rentalManageDto.getExpectedReturnOn()) <= 0 &&
+                    rentalManageDto.getExpectedRentalOn().compareTo(list.getExpectedReturnOn()) <= 0){
+            //リスト貸出予定日<=返却予定日
+            //リスト返却予定日<=貸出予定日
+
+                FieldError fieldError = new FieldError("rentalManageDto", "status", "この本は利用できません");
+                result.addError(fieldError);
+                throw new Exception("Validation error.");
+
+                }
+            }
+
+            // 登録処理
+        this.rentalManageService.save(rentalManageDto);
+        return "redirect:/rental/index";
+
         } catch (Exception e) {
             log.error(e.getMessage());
 
@@ -100,17 +134,16 @@ public class RentalManageController {
         }
     }
 
-
 @GetMapping("/rental/{id}/edit")
     public String edit(@PathVariable("id") Long id, Model model) {
 
-        List<Stock> stockList = this.stockService.findStockAvailableAll();
-        List<Account> accounts = this.accountService.findAll();
-        //全レコードの取得
+    List<Stock> stockList = this.stockService.findStockAvailableAll();
+    List<Account> accounts = this.accountService.findAll();
+    //全レコードの取得
        
-        model.addAttribute("accounts", accounts);
-        model.addAttribute("stockList", stockList);
-        model.addAttribute("rentalStatus", RentalStatus.values());  
+    model.addAttribute("accounts", accounts);
+    model.addAttribute("stockList", stockList);
+    model.addAttribute("rentalStatus", RentalStatus.values());  
  
         if (!model.containsAttribute("rentalManageDto")) {
             RentalManageDto rentalManageDto = new RentalManageDto();
@@ -127,7 +160,7 @@ public class RentalManageController {
             model.addAttribute("rentalManageDto", rentalManageDto);
         }
  
-        return "rental/edit";
+    return "rental/edit";
     }
 
     @PostMapping("/rental/{id}/edit")
@@ -186,12 +219,43 @@ public class RentalManageController {
                 //エラーを追加する
                 throw new Exception("Validation error.");
             }
+        
+            
+            Stock stock = this.stockService.findById(rentalManageDto.getStockId());
+            //貸出管理テーブルの入力された在庫管理番号に紐づく在庫テーブルのデータを持ってくる
+            int stockStatus = stock.getStatus();
+
+            if (stockStatus == 1) {
+            FieldError fieldError = new FieldError("rentalManageDto", "status", "この本は利用できません");
+            result.addError(fieldError);
+            throw new Exception("Validation error.");
+            }   
+            
+            String newStockId = rentalManageDto.getStockId();
+            List<RentalManage> renatalManageList = this.rentalManageService.findByStockIdAndStatus(newStockId);
+            //入力された在庫管理番号に紐づく貸出管理テーブルの貸出ステータス(01のみ)のデータを持ってくる
+            for (RentalManage list : renatalManageList){
+                if (list.getId() == rentalManageDto.getId()){
+                continue;
+                }
+                if (list.getExpectedRentalOn().compareTo(rentalManageDto.getExpectedReturnOn()) <= 0 &&
+                    rentalManageDto.getExpectedRentalOn().compareTo(list.getExpectedReturnOn()) <= 0){
+            //リスト貸出予定日<=返却予定日
+            //リスト返却予定日<=貸出予定日
+
+                FieldError fieldError = new FieldError("rentalManageDto", "status", "この本は利用できません");
+                result.addError(fieldError);
+                throw new Exception("Validation error.");
+
+                }
+            }
+
             
             // 更新処理
             this.rentalManageService.update(Long.valueOf(id), rentalManageDto);
 
             return "redirect:/rental/index";
-        } catch (Exception e) {
+            } catch (Exception e) {
             log.error(e.getMessage());
 
             ra.addFlashAttribute("rentalManageDto", rentalManageDto);
@@ -199,6 +263,6 @@ public class RentalManageController {
 
             return String.format("redirect:/rental/%s/edit", id);
             //return "rental/index";
-        }
+            }
     }
 }
