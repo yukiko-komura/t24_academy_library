@@ -45,6 +45,13 @@ public class RentalManageService {
     public RentalManage findById(Long id) {
         return this.rentalManageRepository.findById(id).orElse(null);
     }
+    //id=貸出管理番号
+
+    @Transactional
+    public List<RentalManage> findByStockIdAndStatus(String newStockId) {
+        return this.rentalManageRepository.findByStockIdAndStatus(newStockId);
+    }
+
 
     @Transactional 
     public void save(RentalManageDto rentalManageDto) throws Exception {
@@ -73,7 +80,7 @@ public class RentalManageService {
             this.rentalManageRepository.save(rentalManage);
         } catch (Exception e) {
             throw e;
-        }
+            }
     }
 
     @Transactional
@@ -85,28 +92,29 @@ public class RentalManageService {
             if (stock == null) {
                 throw new Exception("Stock not found.");
             }
+            
             ////入力時のデータを持ってくる
             //Account account = rentalManage.getAccount();
             //accountの箱にDB上のaccount情報を持ってきていれる
             Account account = this.accountRepository.findByEmployeeId(rentalManageDto.getEmployeeId()).orElse(null);
             if (account == null) {
-                    throw new Exception("Account record not found.");
-                }
+                throw new Exception("Account record not found.");
+            }
             //入力時のデータを持ってくる
             rentalManage = setRentalStatusDate(rentalManage, rentalManageDto.getStatus());
 
-                rentalManage.setAccount(account);
-                rentalManage.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
-                rentalManage.setExpectedReturnOn(rentalManageDto.getExpectedReturnOn());
-                rentalManage.setStatus(rentalManageDto.getStatus());
-                rentalManage.setStock(stock);
+            rentalManage.setAccount(account);
+            rentalManage.setExpectedRentalOn(rentalManageDto.getExpectedRentalOn());
+            rentalManage.setExpectedReturnOn(rentalManageDto.getExpectedReturnOn());
+            rentalManage.setStatus(rentalManageDto.getStatus());
+            rentalManage.setStock(stock);
     
-                // データベースへの保存
-                this.rentalManageRepository.save(rentalManage);
-            } catch (Exception e) {
-                throw e;
+            // データベースへの保存
+            this.rentalManageRepository.save(rentalManage);
+        } catch (Exception e) {
+            throw e;
             }
-        }
+    }
     private RentalManage setRentalStatusDate(RentalManage rentalManage, Integer status) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         
