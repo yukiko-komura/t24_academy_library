@@ -83,39 +83,33 @@ public class RentalManageController {
     public String save(@Valid @ModelAttribute RentalManageDto rentalManageDto, BindingResult result,
             RedirectAttributes ra) {
         try {
-            if (result.hasErrors()) {
-
-                throw new Exception("Validation error.");
-            }
-
             Stock stock = this.stockService.findById(rentalManageDto.getStockId());
             // 貸出管理テーブルの入力された在庫管理番号に紐づく在庫テーブルのデータを持ってくる
             int stockStatus = stock.getStatus();
+            String dateError = rentalManageDto.dateCheck();
             if (stockStatus == 1) {
                 FieldError fieldError = new FieldError("rentalManageDto", "status", "この本は利用できません");
                 result.addError(fieldError);
-
-                throw new Exception("Validation error.");
             }
-
+            if (dateError != null){
+                result.addError(new FieldError("rentalManageDto","expectedRentalOn",dateError));
+            }
             String newStockId = rentalManageDto.getStockId();
             List<RentalManage> renatalManagelList = this.rentalManageService.findByStockIdAndStatus(newStockId);
             // 入力された在庫管理番号に紐づく貸出管理テーブルの貸出ステータス(01のみ)のデータを持ってくる
-            if (renatalManagelList == null) {
-                this.rentalManageService.save(rentalManageDto);
-
-                return "redirect:/rental/index";
-            }
-
-            for (RentalManage list : renatalManagelList) {
+            if (renatalManagelList != null){
+                for (RentalManage list : renatalManagelList) {
                 if (list.getExpectedRentalOn().compareTo(rentalManageDto.getExpectedReturnOn()) <= 0 &&
                         rentalManageDto.getExpectedRentalOn().compareTo(list.getExpectedReturnOn()) <= 0) {
-                    FieldError fieldError = new FieldError("rentalManageDto", "status", "この本は利用できません");
-                    result.addError(fieldError);
-
-                    throw new Exception("Validation error.");
+                        FieldError fieldError = new FieldError("rentalManageDto", "status", "この本は利用できません");
+                        result.addError(fieldError);
                 }
             }
+        }
+            if (result.hasErrors()) {
+            
+                throw new Exception("Validation error.");
+                }
             this.rentalManageService.save(rentalManageDto);
 
             return "redirect:/rental/index";
@@ -165,7 +159,6 @@ public class RentalManageController {
 
                 throw new Exception("Validation error.");
             }
-
             RentalManage rentalManage = this.rentalManageService.findById(id);
             int preStatus = rentalManage.getStatus();
             int newStatus = rentalManageDto.getStatus();
@@ -231,7 +224,7 @@ public class RentalManageController {
                         rentalManageDto.getExpectedRentalOn().compareTo(list.getExpectedReturnOn()) <= 0) {
                     FieldError fieldError = new FieldError("rentalManageDto", "status", "この本は利用できません");
                     result.addError(fieldError);
-                    
+
                     throw new Exception("Validation error.");
                 }
             }
