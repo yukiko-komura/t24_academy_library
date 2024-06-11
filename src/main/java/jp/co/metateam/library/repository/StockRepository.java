@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import jp.co.metateam.library.model.Stock;
@@ -20,4 +21,9 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 	Optional<Stock> findById(String id);
     
     List<Stock> findByBookMstIdAndStatus(Long book_id,Integer status);
+
+    @Query("select s from Stock s where s.bookMst = ?1 and s.status = 0 and s.deletedAt is null")
+    List<Stock> findByBookMstIdAndAvailableStatus(Long newBookId);
+
 }
+

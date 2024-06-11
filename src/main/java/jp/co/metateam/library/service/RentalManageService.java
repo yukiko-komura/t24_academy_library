@@ -2,6 +2,7 @@ package jp.co.metateam.library.service;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,15 @@ public class RentalManageService {
         return this.rentalManageRepository.findByStockIdAndStatus(newStockId);
     }
 
+    @Transactional
+    public List<RentalManage> findByRentallingDateAndStatus(Date newDate,String availableStocks){
+        return this.rentalManageRepository.findByRentallingDateAndStatus(newDate,availableStocks);
+    }
+
+    @Transactional
+    public List<RentalManage> findByRentalwaitDateAndStatus(Date newDate,String availableStocks){
+        return this.rentalManageRepository.findByRentalwaitDateAndStatus(newDate,availableStocks);
+    }
 
     @Transactional 
     public void save(RentalManageDto rentalManageDto) throws Exception {

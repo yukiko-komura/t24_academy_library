@@ -1,6 +1,8 @@
 package jp.co.metateam.library.service;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.Date;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,10 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jp.co.metateam.library.constants.Constants;
 import jp.co.metateam.library.model.BookMst;
+import jp.co.metateam.library.model.RentalManage;
+import jp.co.metateam.library.service.RentalManageService;
 import jp.co.metateam.library.model.Stock;
 import jp.co.metateam.library.model.StockDto;
 import jp.co.metateam.library.repository.BookMstRepository;
 import jp.co.metateam.library.repository.StockRepository;
+import jp.co.metateam.library.repository.RentalManageRepository;
 
 @Service
 public class StockService {
@@ -37,10 +42,15 @@ public class StockService {
     }
     
     @Transactional
-    public List <Stock> findStockAvailableAll() {
+    public List<Stock> findStockAvailableAll() {
         List <Stock> stocks = this.stockRepository.findByDeletedAtIsNullAndStatus(Constants.STOCK_AVAILABLE);
 
         return stocks;
+    }
+
+    @Transactional
+    public List<Stock> findByBookMstIdAndAvailableStatus(Long newBookId) {
+        return this.stockRepository.findByBookMstIdAndAvailableStatus(newBookId);
     }
 
     @Transactional
@@ -109,7 +119,34 @@ public class StockService {
     public List<String> generateValues(Integer year, Integer month, Integer daysInMonth) {
         // FIXME ここで各書籍毎の日々の在庫を生成する処理を実装する
         // FIXME ランダムに値を返却するサンプルを実装している
-        String[] stockNum = {"1", "2", "3", "4", "×"};
+        List<BookMst> books = this.bookMstRepository.findByDeletedAtIsNull();
+        List<String> values = new ArrayList<>();
+        
+        for (BookMst booklist : books){
+            Long newBookId = booklist.getId();
+            List<Stock> availableStocks = this.stockRepository.findByBookMstIdAndAvailableStatus(newBookId);
+            values.add(booklist.getTitle());
+            //カウントする文を書く
+            
+            /* for (int i = 1; i <= daysInMonth; i++) {
+                String newDate = year+"-"+month+"-"+i;
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                Date date = format.parse(newDate);
+
+                List<RentalManage> rentallingcount = this.rentalManageRepository.findByRentallingDateAndStatus(newDate,availableStocks);
+                List<RentalManage> rentalwaitcount = this.rentalManageRepository.findByRentalwaitDateAndStatus(newDate,availableStocks);
+
+
+                //カウントする文を書く
+                
+            } */
+        }
+            return values;
+        }
+
+}
+
+       /*  String[] stockNum = {"1", "2", "3", "4", "×"};
         Random rnd = new Random();
         List<String> values = new ArrayList<>();
         values.add("スッキリわかるJava入門 第4版"); // 対象の書籍名
@@ -121,4 +158,4 @@ public class StockService {
         }
         return values;
     }
-}
+} */
