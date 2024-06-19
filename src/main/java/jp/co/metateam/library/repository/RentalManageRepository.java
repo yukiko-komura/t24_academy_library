@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import jp.co.metateam.library.model.RentalManage;
+import jp.co.metateam.library.model.Stock;
 
 @Repository
 public interface RentalManageRepository extends JpaRepository<RentalManage, Long> {
@@ -19,11 +20,11 @@ public interface RentalManageRepository extends JpaRepository<RentalManage, Long
     List<RentalManage> findByStockIdAndStatus(String newStockId);
     //在庫管理番号を引数にして紐づける
 
-    @Query("select rm from RentalManage rm where ?1 >=rm.rentaledAt and ?1 <=rm.expectedReturnOn and rm.status = 1 and rm.stock in ?2")
-    List<RentalManage> findByRentallingDateAndStatus(Date newDate,String availableStocks);
+    @Query("select count(rm) from RentalManage rm where ?1 >=rm.rentaledAt and ?1 <=rm.expectedReturnOn and rm.status = 1 and rm.stock in ?2")
+    Integer findByRentallingDateAndStatus(Date newDate,List<Stock> availableStocks);
 
-    @Query("select rm from RentalManage rm where ?1 >=rm.expectedRentalOn and ?1 <=rm.expectedReturnOn and rm.status = 0 and rm.stock in ?2")
-    List<RentalManage> findByRentalwaitDateAndStatus(Date newDate,String availableStocks);
+    @Query("select count(rm) from RentalManage rm where ?1 >=rm.expectedRentalOn and ?1 <=rm.expectedReturnOn and rm.status = 0 and rm.stock in ?2")
+    Integer findByRentalwaitDateAndStatus(Date newDate,List<Stock> availableStocks);
 
     //select * from rental_manage where id = id;
 	Optional<RentalManage> findById(Long id);

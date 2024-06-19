@@ -54,12 +54,12 @@ public class RentalManageService {
     }
 
     @Transactional
-    public List<RentalManage> findByRentallingDateAndStatus(Date newDate,String availableStocks){
+    public Integer findByRentallingDateAndStatus(Date newDate,List<Stock> availableStocks){
         return this.rentalManageRepository.findByRentallingDateAndStatus(newDate,availableStocks);
     }
 
     @Transactional
-    public List<RentalManage> findByRentalwaitDateAndStatus(Date newDate,String availableStocks){
+    public Integer findByRentalwaitDateAndStatus(Date newDate,List<Stock> availableStocks){
         return this.rentalManageRepository.findByRentalwaitDateAndStatus(newDate,availableStocks);
     }
 

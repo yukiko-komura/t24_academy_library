@@ -12,8 +12,8 @@ import java.util.Optional;
 public interface BookMstRepository extends JpaRepository<BookMst, Long> {
 	List<BookMst> findAll();
 
-	@Query("select b from BookMst b where deletedAt is null")
-	List<BookMst> findByDeletedAtIsNull();
+	@Query("select b from BookMst b where b.deletedAt is null")
+	List<BookMst> findAllDeletedAtIsNull();
 
 	Optional<BookMst> findById(BigInteger id);
 }

@@ -149,17 +149,15 @@ public class StockController {
 
 
         List<Object> daysOfWeek = this.stockService.generateDaysOfWeek(targetYear, targetMonth, startDate, daysInMonth);
-        List<String> stocks = this.stockService.generateValues(targetYear, targetMonth, daysInMonth);
-        List<BookMst> bookMstList =this.bookMstService.findByDeletedAtIsNull();
-
+        List<List<String>> stocks = this.stockService.generateValues(targetYear, targetMonth, daysInMonth);
+        
+    
         model.addAttribute("targetYear", targetYear);
         model.addAttribute("targetMonth", targetMonth);
         model.addAttribute("daysOfWeek", daysOfWeek);
         model.addAttribute("daysInMonth", daysInMonth);
 
         model.addAttribute("stocks", stocks);
-
-        model.addAttribute("bookMstList", bookMstList);
 
         return "stock/calendar";
     }

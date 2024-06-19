@@ -33,9 +33,9 @@ public class BookMstService {
     public List<BookMst> findAll() {
         return this.bookMstRepository.findAll();
     }
-
-    public List<BookMst> findByDeletedAtIsNull(){
-        return this.bookMstRepository.findByDeletedAtIsNull();
+    @Transactional
+    public List<BookMst> findAllDeletedAtIsNull(){
+        return this.bookMstRepository.findAllDeletedAtIsNull();
     }
 
     public Optional<BookMst> findById(Long id) {

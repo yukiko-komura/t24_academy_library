@@ -1,13 +1,11 @@
 package jp.co.metateam.library.service;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.Date;
+import java.sql.Date;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,8 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jp.co.metateam.library.constants.Constants;
 import jp.co.metateam.library.model.BookMst;
-import jp.co.metateam.library.model.RentalManage;
-import jp.co.metateam.library.service.RentalManageService;
+
 import jp.co.metateam.library.model.Stock;
 import jp.co.metateam.library.model.StockDto;
 import jp.co.metateam.library.repository.BookMstRepository;
@@ -27,11 +24,14 @@ import jp.co.metateam.library.repository.RentalManageRepository;
 public class StockService {
     private final BookMstRepository bookMstRepository;
     private final StockRepository stockRepository;
+    private final RentalManageRepository rentalManageRepository;
 
     @Autowired
-    public StockService(BookMstRepository bookMstRepository, StockRepository stockRepository){
+    public StockService(BookMstRepository bookMstRepository, StockRepository stockRepository,
+            RentalManageRepository rentalManageRepository) {
         this.bookMstRepository = bookMstRepository;
         this.stockRepository = stockRepository;
+        this.rentalManageRepository = rentalManageRepository;
     }
 
     @Transactional
@@ -40,10 +40,10 @@ public class StockService {
 
         return stocks;
     }
-    
+
     @Transactional
     public List<Stock> findStockAvailableAll() {
-        List <Stock> stocks = this.stockRepository.findByDeletedAtIsNullAndStatus(Constants.STOCK_AVAILABLE);
+        List<Stock> stocks = this.stockRepository.findByDeletedAtIsNullAndStatus(Constants.STOCK_AVAILABLE);
 
         return stocks;
     }
@@ -58,7 +58,7 @@ public class StockService {
         return this.stockRepository.findById(id).orElse(null);
     }
 
-    @Transactional 
+    @Transactional
     public void save(StockDto stockDto) throws Exception {
         try {
             Stock stock = new Stock();
@@ -79,11 +79,11 @@ public class StockService {
         }
     }
 
-    @Transactional 
+    @Transactional
     public void update(String id, StockDto stockDto) throws Exception {
         try {
             Stock stock = findById(id);
-            //idと同じフィールドにあるレコードを全件取得
+            // idと同じフィールドにあるレコードを全件取得
             if (stock == null) {
                 throw new Exception("Stock record not found.");
             }
@@ -116,46 +116,53 @@ public class StockService {
         return daysOfWeek;
     }
 
-    public List<String> generateValues(Integer year, Integer month, Integer daysInMonth) {
-        // FIXME ここで各書籍毎の日々の在庫を生成する処理を実装する
-        // FIXME ランダムに値を返却するサンプルを実装している
-        List<BookMst> books = this.bookMstRepository.findByDeletedAtIsNull();
-        List<String> values = new ArrayList<>();
+    public List<List<String>> generateValues(Integer year, Integer month, Integer daysInMonth) {
         
-        for (BookMst booklist : books){
+        List<BookMst> books = this.bookMstRepository.findAllDeletedAtIsNull();
+        List<List<String>> bigValues = new ArrayList<>();
+
+        for (BookMst booklist : books) {
             Long newBookId = booklist.getId();
             List<Stock> availableStocks = this.stockRepository.findByBookMstIdAndAvailableStatus(newBookId);
+            List<String> values = new ArrayList<>();
             values.add(booklist.getTitle());
-            //カウントする文を書く
-            
-            /* for (int i = 1; i <= daysInMonth; i++) {
-                String newDate = year+"-"+month+"-"+i;
-                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-                Date date = format.parse(newDate);
+            int stocks = availableStocks.size();
+            values.add(String.valueOf(stocks));
+            // カウントする文を書く
+            for (int i = 1; i <= daysInMonth; i++) {
+                LocalDate day = LocalDate.of(year,month,i);
+                Date newDate = Date.valueOf(day);
+                   
+                Integer rentallingcount = this.rentalManageRepository
+                            .findByRentallingDateAndStatus(newDate, availableStocks);
+                Integer rentalwaitcount = this.rentalManageRepository
+                            .findByRentalwaitDateAndStatus(newDate, availableStocks);
 
-                List<RentalManage> rentallingcount = this.rentalManageRepository.findByRentallingDateAndStatus(newDate,availableStocks);
-                List<RentalManage> rentalwaitcount = this.rentalManageRepository.findByRentalwaitDateAndStatus(newDate,availableStocks);
-
-
-                //カウントする文を書く
-                
-            } */
+                String stockCount = String.valueOf(stocks-rentallingcount-rentalwaitcount);                
+                if (stockCount.equals("0") ){
+                    stockCount = "✕";
+                }
+                values.add(stockCount);
+            }
+            bigValues.add(values);
         }
-            return values;
-        }
-
+        return bigValues; 
+    }
 }
 
-       /*  String[] stockNum = {"1", "2", "3", "4", "×"};
-        Random rnd = new Random();
-        List<String> values = new ArrayList<>();
-        values.add("スッキリわかるJava入門 第4版"); // 対象の書籍名
-        values.add("10"); // 対象書籍の在庫総数
-        
-        for (int i = 1; i <= daysInMonth; i++) {
-            int index = rnd.nextInt(stockNum.length);
-            values.add(stockNum[index]);
-        }
-        return values;
-    }
-} */
+
+/*
+ * String[] stockNum = {"1", "2", "3", "4", "×"};
+ * Random rnd = new Random();
+ * List<String> values = new ArrayList<>();
+ * values.add("スッキリわかるJava入門 第4版"); // 対象の書籍名
+ * values.add("10"); // 対象書籍の在庫総数
+ * 
+ * for (int i = 1; i <= daysInMonth; i++) {
+ * int index = rnd.nextInt(stockNum.length);
+ * values.add(stockNum[index]);
+ * }
+ * return values;
+ * }
+ * }
+ */

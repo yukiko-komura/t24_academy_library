@@ -22,8 +22,7 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
     
     List<Stock> findByBookMstIdAndStatus(Long book_id,Integer status);
 
-    @Query("select s from Stock s where s.bookMst = ?1 and s.status = 0 and s.deletedAt is null")
+    @Query("select s from Stock s where s.bookMst.id = ?1 and s.status = 0 and s.deletedAt is null")
     List<Stock> findByBookMstIdAndAvailableStatus(Long newBookId);
 
 }
-
