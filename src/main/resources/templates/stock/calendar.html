@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
-
 <head th:replace="~{common :: meta_header('在庫カレンダー',~{::link},~{::script})}">
     <title th:text="${title}+' | MTLibrary'"></title>
     <link rel="stylesheet" th:href="@{/css/stock/calendar.css}" />
     <script type="text/javascript" th:src="@{/js/stock/add.js}"></script>
 </head>
-
 <body>
     <div class="contents">
         <div th:replace="~{common :: main_sidebar}"></div>
@@ -31,8 +29,7 @@
                             <tr>
                                 <th class="header_book" rowspan="2">書籍名</th>
                                 <th class="header_stock" rowspan="2">在庫数</th>
-                                <th class="header_days" th:colspan="${daysInMonth}"
-                                    th:text="${targetYear + '年' + targetMonth + '月'}"></th>
+                                <th class="header_days" th:colspan="${daysInMonth}" th:text="${targetYear + '年' + targetMonth + '月'}"></th>
                             </tr>
                             <tr class="days">
                                 <th th:each="day : ${daysOfWeek}" th:text="${day}"></th>
@@ -40,16 +37,10 @@
                         </thead>
                         <tbody>
 
-                            <tr th:each="stocks : ${stocks}">
-                                <td th:text="${stocks.get(0)}"></td>
-
-                                <td th:text="${stocks.get(1)}"></td>
-                                <th:block th:each="stockInfo : ${stocks.subList(2, stocks.size())}">
-                                    <td th:if="✕" th:text="${stockInfo}"></td>
-                                    <a href th:if="!(✕)" th:text="${stockInfo}"></a>
-                                </th:block>
-                                
-                            </tr>
+            <tr th:each="stock : ${stocks}">
+                <td th:text="${stock.get(0)}"></td>
+                <td th:text="${stock.get(1)}"></td>
+                <td th:each="daylyStock : ${stock.subList(2, stock.size())}" th:text="${daylyStock}"></td>
                         </tbody>
                     </table>
                 </div>
