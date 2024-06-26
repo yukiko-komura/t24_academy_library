@@ -70,9 +70,7 @@ public class StockService {
 
     @Transactional
     public List<Stock> findByBookMstIdAndAvailableStatus(String title) {
-        List<Stock> tmp = this.stockRepository.findByBookMstIdAndAvailableStatus(title);
-        return tmp;
-        /* return this.stockRepository.findByBookMstIdAndAvailableStatus(newBookId); */
+        return this.stockRepository.findByBookMstIdAndAvailableStatus(title);
     }
 
     @Transactional

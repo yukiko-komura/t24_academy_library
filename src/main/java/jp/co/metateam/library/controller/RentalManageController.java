@@ -68,11 +68,12 @@ public class RentalManageController {
     @GetMapping("/rental/add")
     public String add(@RequestParam(required = false) Integer year, @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer day,@RequestParam(required = false) String title, Model model) {
-        List<Account> accounts = this.accountService.findAll();
-        List<Stock> stockList = this.stockService.findAll();
+            List<Account> accounts = this.accountService.findAll();
+            List<Stock> stockList = this.stockService.findAll();
         // アカウントとストックテーブルから全件取得
         if (!model.containsAttribute("rentalManageDto")) {
             if (year != null && month != null && day != null) {
+        
                 RentalManageDto rentalManageDto = new RentalManageDto();
                 LocalDate expectedRentalOn = LocalDate.of(year, month, day);
                 java.sql.Date choiceDate = java.sql.Date.valueOf(expectedRentalOn);
@@ -82,6 +83,8 @@ public class RentalManageController {
                 
                 model.addAttribute("rentalManageDto", rentalManageDto);
                 model.addAttribute("stockList", availableStocks);
+                model.addAttribute("accounts", accounts);
+                model.addAttribute("rentalStatus", RentalStatus.values());
 
             }else {
                 model.addAttribute("accounts", accounts);
