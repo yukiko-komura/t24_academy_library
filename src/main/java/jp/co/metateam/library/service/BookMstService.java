@@ -13,6 +13,7 @@ import io.micrometer.common.util.StringUtils;
 import jp.co.metateam.library.constants.Constants;
 import jp.co.metateam.library.model.BookMst;
 import jp.co.metateam.library.model.BookMstDto;
+import jp.co.metateam.library.model.RentalManage;
 import jp.co.metateam.library.model.Stock;
 import jp.co.metateam.library.repository.BookMstRepository;
 import jp.co.metateam.library.repository.StockRepository;
@@ -32,6 +33,10 @@ public class BookMstService {
     public List<BookMst> findAll() {
         return this.bookMstRepository.findAll();
     }
+    @Transactional
+    public List<BookMst> findAllDeletedAtIsNull(){
+        return this.bookMstRepository.findAllDeletedAtIsNull();
+    }
 
     public Optional<BookMst> findById(Long id) {
         return this.bookMstRepository.findById(id);
@@ -44,9 +49,11 @@ public class BookMstService {
         // 書籍の在庫数を取得
         // FIXME: 現状は書籍ID毎にDBに問い合わせている。一度のSQLで完了させたい。
         for (int i = 0; i < books.size(); i++) {
+        //booksのリスト内分回す
             BookMst book = books.get(i);
             List<Stock> stockCount = this.stockRepository.findByBookMstIdAndStatus(book.getId(), Constants.STOCK_AVAILABLE);
             BookMstDto bookMstDto = new BookMstDto();
+            //新しく追加されていく
             bookMstDto.setId(book.getId());
             bookMstDto.setIsbn(book.getIsbn());
             bookMstDto.setTitle(book.getTitle());

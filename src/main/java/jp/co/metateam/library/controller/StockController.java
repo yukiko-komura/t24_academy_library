@@ -1,6 +1,7 @@
 package jp.co.metateam.library.controller;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -136,20 +137,30 @@ public class StockController {
     public String calendar(@RequestParam(required = false) Integer year, @RequestParam(required = false) Integer month, Model model) {
 
         LocalDate today = year == null || month == null ? LocalDate.now() : LocalDate.of(year, month, 1);
+        //年月がnullの場合は現在日時の取得、nullでない場合は指定された日時の取得
+        //Integer targetYear = today.getYear();
         Integer targetYear = year == null ? today.getYear() : year;
+        //年がnullの場合は現在年の取得、nullでない場合は指定された年の取得
         Integer targetMonth = today.getMonthValue();
-
+        //Integer targetMonth = month == null ? today.getMonthValue() : month;
         LocalDate startDate = LocalDate.of(targetYear, targetMonth, 1);
+        //初期化してtargetYear, targetMonth, 1の値をstartDateに代入
         Integer daysInMonth = startDate.lengthOfMonth();
+        //月の日数の値を取得
+       
+
 
         List<Object> daysOfWeek = this.stockService.generateDaysOfWeek(targetYear, targetMonth, startDate, daysInMonth);
-        List<String> stocks = this.stockService.generateValues(targetYear, targetMonth, daysInMonth);
-
+        List<List<String>> stocks = this.stockService.generateValues(targetYear, targetMonth, daysInMonth);
+        LocalDate nowDate = LocalDate.now(ZoneId.of("Asia/Tokyo"));
+    
+    
         model.addAttribute("targetYear", targetYear);
         model.addAttribute("targetMonth", targetMonth);
         model.addAttribute("daysOfWeek", daysOfWeek);
         model.addAttribute("daysInMonth", daysInMonth);
 
+        model.addAttribute("nowDate", nowDate);
         model.addAttribute("stocks", stocks);
 
         return "stock/calendar";

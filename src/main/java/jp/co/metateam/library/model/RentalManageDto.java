@@ -37,7 +37,7 @@ public class RentalManageDto {
     private Date expectedReturnOn;
     
     public String dateCheck(){
-        if (this.expectedReturnOn.after(this.expectedRentalOn)){
+        if (!this.expectedReturnOn.after(this.expectedRentalOn)){
             return "貸出予定日が返却予定日より後の日付で貸出できません";
         }
         return null;
