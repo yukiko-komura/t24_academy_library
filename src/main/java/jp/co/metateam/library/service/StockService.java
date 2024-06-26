@@ -13,12 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jp.co.metateam.library.constants.Constants;
 import jp.co.metateam.library.model.BookMst;
-
+import jp.co.metateam.library.model.RentalManage;
 import jp.co.metateam.library.model.Stock;
 import jp.co.metateam.library.model.StockDto;
 import jp.co.metateam.library.repository.BookMstRepository;
 import jp.co.metateam.library.repository.StockRepository;
 import jp.co.metateam.library.repository.RentalManageRepository;
+import jp.co.metateam.library.service.RentalManageService;
 
 @Service
 public class StockService {
@@ -28,7 +29,7 @@ public class StockService {
 
     @Autowired
     public StockService(BookMstRepository bookMstRepository, StockRepository stockRepository,
-            RentalManageRepository rentalManageRepository) {
+            RentalManageRepository rentalManageRepository, RentalManageService rentalManageService) {
         this.bookMstRepository = bookMstRepository;
         this.stockRepository = stockRepository;
         this.rentalManageRepository = rentalManageRepository;
@@ -49,8 +50,29 @@ public class StockService {
     }
 
     @Transactional
-    public List<Stock> findByBookMstIdAndAvailableStatus(Long newBookId) {
-        return this.stockRepository.findByBookMstIdAndAvailableStatus(newBookId);
+    public Integer findByRentalwaitDateAndStatus(Date newDate, List<String> availableStockId) {
+        return this.rentalManageRepository.findByRentalwaitDateAndStatus(newDate, availableStockId);
+    }
+
+    @Transactional
+    public Integer findByRentallingDateAndStatus(Date newDate, List<String> availableStockId) {
+        List<RentalManage> unavailableStockLists = this.rentalManageRepository.findByRentallingDateAndStatus(newDate,
+                availableStockId);
+        Integer unavailableStockNum = unavailableStockLists.size();
+
+        return unavailableStockLists.size();
+    }
+
+    @Transactional
+    public List<Stock> lendableBook(Date choiceDate, String title) {
+        return this.stockRepository.lendableBook(choiceDate, title);
+    }
+
+    @Transactional
+    public List<Stock> findByBookMstIdAndAvailableStatus(String title) {
+        List<Stock> tmp = this.stockRepository.findByBookMstIdAndAvailableStatus(title);
+        return tmp;
+        /* return this.stockRepository.findByBookMstIdAndAvailableStatus(newBookId); */
     }
 
     @Transactional
@@ -117,52 +139,49 @@ public class StockService {
     }
 
     public List<List<String>> generateValues(Integer year, Integer month, Integer daysInMonth) {
-        
+
         List<BookMst> books = this.bookMstRepository.findAllDeletedAtIsNull();
         List<List<String>> bigValues = new ArrayList<>();
+        
 
-        for (BookMst booklist : books) {
-            Long newBookId = booklist.getId();
-            List<Stock> availableStocks = this.stockRepository.findByBookMstIdAndAvailableStatus(newBookId);
+        for (BookMst bookList : books) {
+            String title = bookList.getTitle();
+            List<Stock> availableStocks = this.stockRepository.findByBookMstIdAndAvailableStatus(title);
             List<String> values = new ArrayList<>();
-            values.add(booklist.getTitle());
+            values.add(bookList.getTitle());
             int stocks = availableStocks.size();
             values.add(String.valueOf(stocks));
-            // カウントする文を書く
-            for (int i = 1; i <= daysInMonth; i++) {
-                LocalDate day = LocalDate.of(year,month,i);
-                Date newDate = Date.valueOf(day);
-                   
-                Integer rentallingcount = this.rentalManageRepository
-                            .findByRentallingDateAndStatus(newDate, availableStocks);
-                Integer rentalwaitcount = this.rentalManageRepository
-                            .findByRentalwaitDateAndStatus(newDate, availableStocks);
+            
+            List<String> availableStockId = new ArrayList<>();
+            for (Stock stockList : availableStocks) {
+                availableStockId.add(stockList.getId());
+            }
 
-                String stockCount = String.valueOf(stocks-rentallingcount-rentalwaitcount);                
-                if (stockCount.equals("0") ){
+            for (int i = 1; i <= daysInMonth; i++) {
+                LocalDate day = LocalDate.of(year, month, i);
+                Date newDate = Date.valueOf(day);
+
+                Integer rentallingcount = findByRentallingDateAndStatus(newDate, availableStockId);
+                Integer rentalwaitcount = findByRentalwaitDateAndStatus(newDate, availableStockId);
+
+                String stockCount = String.valueOf(stocks - rentallingcount - rentalwaitcount);
+                if (stockCount.equals("0")) {
                     stockCount = "✕";
                 }
                 values.add(stockCount);
             }
             bigValues.add(values);
         }
-        return bigValues; 
+        return bigValues;
+    }
+
+    public List<Stock> availableStockValues(java.sql.Date choiceDate, String title) {
+
+        List<Stock> availableList = lendableBook(choiceDate, title);
+        List<Stock> StockAvailable = this.findByBookMstIdAndAvailableStatus(title);
+
+        StockAvailable.removeAll(availableList);
+
+        return StockAvailable;
     }
 }
-
-
-/*
- * String[] stockNum = {"1", "2", "3", "4", "×"};
- * Random rnd = new Random();
- * List<String> values = new ArrayList<>();
- * values.add("スッキリわかるJava入門 第4版"); // 対象の書籍名
- * values.add("10"); // 対象書籍の在庫総数
- * 
- * for (int i = 1; i <= daysInMonth; i++) {
- * int index = rnd.nextInt(stockNum.length);
- * values.add(stockNum[index]);
- * }
- * return values;
- * }
- * }
- */

@@ -53,15 +53,6 @@ public class RentalManageService {
         return this.rentalManageRepository.findByStockIdAndStatus(newStockId);
     }
 
-    @Transactional
-    public Integer findByRentallingDateAndStatus(Date newDate,List<Stock> availableStocks){
-        return this.rentalManageRepository.findByRentallingDateAndStatus(newDate,availableStocks);
-    }
-
-    @Transactional
-    public Integer findByRentalwaitDateAndStatus(Date newDate,List<Stock> availableStocks){
-        return this.rentalManageRepository.findByRentalwaitDateAndStatus(newDate,availableStocks);
-    }
 
     @Transactional 
     public void save(RentalManageDto rentalManageDto) throws Exception {
